@@ -272,6 +272,7 @@ enum MiniquadInputEvent {
         id: u64,
         x: f32,
         y: f32,
+        time: f64,
     },
     WindowMinimized,
     WindowRestored,
@@ -296,7 +297,7 @@ impl MiniquadInputEvent {
                 repeat,
             } => t.key_down_event(*keycode, *modifiers, *repeat),
             KeyUp { keycode, modifiers } => t.key_up_event(*keycode, *modifiers),
-            Touch { phase, id, x, y } => t.touch_event(*phase, *id, *x, *y),
+            Touch { phase, id, x, y, time } => t.touch_event(*phase, *id, *x, *y, *time),
             WindowMinimized => t.window_minimized_event(),
             WindowRestored => t.window_restored_event(),
         }
@@ -640,7 +641,7 @@ impl EventHandler for Stage {
         }
     }
 
-    fn touch_event(&mut self, phase: TouchPhase, id: u64, x: f32, y: f32) {
+    fn touch_event(&mut self, phase: TouchPhase, id: u64, x: f32, y: f32, time: f64) {
         let context = get_context();
 
         context.touches.insert(
@@ -649,6 +650,7 @@ impl EventHandler for Stage {
                 id,
                 phase: phase.into(),
                 position: Vec2::new(x, y),
+                time,
             },
         );
 
@@ -671,7 +673,7 @@ impl EventHandler for Stage {
         context
             .input_events
             .iter_mut()
-            .for_each(|arr| arr.push(MiniquadInputEvent::Touch { phase, id, x, y }));
+            .for_each(|arr| arr.push(MiniquadInputEvent::Touch { phase, id, x, y, time }));
 
         if context.update_on.mouse_down {
             miniquad::window::schedule_update();
