@@ -371,12 +371,11 @@ impl PipelineExt {
 }
 
 struct PipelinesStorage {
-    pipelines: [Option<PipelineExt>; Self::MAX_PIPELINES],
-    pipelines_amount: usize,
+    pipelines: Vec<Option<PipelineExt>>,
+    first_hole: usize,
 }
 
 impl PipelinesStorage {
-    const MAX_PIPELINES: usize = 32;
     const TRIANGLES_PIPELINE: GlPipeline = GlPipeline(0);
     const LINES_PIPELINE: GlPipeline = GlPipeline(1);
     const TRIANGLES_DEPTH_PIPELINE: GlPipeline = GlPipeline(2);
@@ -409,7 +408,7 @@ impl PipelinesStorage {
 
         let mut storage = PipelinesStorage {
             pipelines: Default::default(),
-            pipelines_amount: 0,
+            first_hole: 0,
         };
 
         let triangles_pipeline = storage.make_pipeline(
@@ -492,11 +491,13 @@ impl PipelinesStorage {
             params,
         );
 
-        let id = self
-            .pipelines
-            .iter()
-            .position(|p| p.is_none())
-            .unwrap_or_else(|| panic!("Pipelines amount exceeded"));
+        while self.pipelines.get(self.first_hole).map_or(false, |it| it.is_some()) {
+            self.first_hole += 1;
+        }
+        if self.first_hole == self.pipelines.len() {
+            self.pipelines.push(None);
+        }
+        let id = self.first_hole;
 
         let mut max_offset = 0;
 
@@ -529,7 +530,6 @@ impl PipelinesStorage {
             textures,
             textures_data: BTreeMap::new(),
         });
-        self.pipelines_amount += 1;
 
         GlPipeline(id)
     }
@@ -549,6 +549,7 @@ impl PipelinesStorage {
 
     fn delete_pipeline(&mut self, pip: GlPipeline) {
         self.pipelines[pip.0] = None;
+        self.first_hole = self.first_hole.min(pip.0);
     }
 }
 
