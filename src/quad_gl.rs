@@ -836,6 +836,10 @@ impl QuadGl {
         self.state.texture = texture.map(|t| ctx.raw_miniquad_id(&t.texture));
     }
 
+    pub fn get_scissor(&mut self) -> Option<(i32, i32, i32, i32)> {
+        self.state.clip
+    }
+
     pub fn scissor(&mut self, clip: Option<(i32, i32, i32, i32)>) {
         self.state.clip = clip;
     }
