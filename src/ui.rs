@@ -636,7 +636,7 @@ impl InputHandler for Ui {
         //     self.clipboard.set(&self.clipboard_selection);
         // }
 
-        if key != KeyCode::Control && self.key_repeat.add_repeat_gap(key, self.time) {
+        if self.key_repeat.add_repeat_gap(key, self.time) {
             self.input.input_buffer.push(input::InputCharacter {
                 key: input::Key::KeyCode(key),
                 modifier_shift: shift,
