@@ -99,9 +99,8 @@ impl<'a> Editbox<'a> {
                     modifier_ctrl: false,
                     ..
                 } => {
-                    // Don't insert spaces for control characters
-                    if character.is_ascii()
-                        && !character.is_ascii_control()
+                    // Don't insert control characters
+                    if !character.is_control()
                         && self.filter.as_ref().map_or(true, |f| f(character))
                     {
                         if state.selection.is_some() {
@@ -298,11 +297,13 @@ impl<'a> Editbox<'a> {
             #[cfg(target_os = "android")]
             miniquad::window::show_keyboard(true);
             *context.input_focus = Some(self.id);
+            miniquad::window::set_ime_enabled(true);
         }
         if context.input_focused(self.id) && context.input.click_down() && hovered == false {
             #[cfg(target_os = "android")]
             miniquad::window::show_keyboard(false);
             *context.input_focus = None;
+            miniquad::window::set_ime_enabled(false);
         }
 
         let state = context
@@ -338,6 +339,7 @@ impl<'a> Editbox<'a> {
         if context.focused == false || input_focused == false {
             state.deselect();
             state.clicks_counter = 0;
+            miniquad::window::set_ime_enabled(false);
         }
         if time - state.last_click_time > 3. * text_editor::DOUBLE_CLICK_TIME {
             state.clicks_counter = 0;
@@ -429,6 +431,10 @@ impl<'a> Editbox<'a> {
                     Rect::new(pos.x + x, pos.y + y + 2., 2., font_size as f32 - 5.),
                     text_color,
                     None,
+                );
+                miniquad::window::set_ime_position(
+                    (pos.x + x) as i32,
+                    (pos.y + y + font_size as f32) as i32,
                 );
             }
 
