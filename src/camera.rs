@@ -247,7 +247,7 @@ impl Camera for Camera3D {
         };
         let aspect = self.aspect.unwrap_or(width / height);
 
-        match self.projection {
+        let projection = match self.projection {
             Projection::Perspective => {
                 Mat4::perspective_rh_gl(self.fovy, aspect, self.z_near, self.z_far)
                     * Mat4::look_at_rh(self.position, self.target, self.up)
@@ -259,6 +259,12 @@ impl Camera for Camera3D {
                 Mat4::orthographic_rh_gl(-right, right, -top, top, self.z_near, self.z_far)
                     * Mat4::look_at_rh(self.position, self.target, self.up)
             }
+        };
+
+        if self.render_target.is_some() {
+            Mat4::from_scale(Vec3::new(1.0, -1.0, 1.0)) * projection
+        } else {
+            projection
         }
     }
 
